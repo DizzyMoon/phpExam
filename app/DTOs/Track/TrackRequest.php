@@ -1,8 +1,9 @@
 <?php
 
 namespace App\DTOs\Track;
+use App\DTOs\Request;
 
-class TrackRequest {
+class TrackRequest implements Request {
     public string $name;
     public int $albumId;
     public int $mediaTypeId;

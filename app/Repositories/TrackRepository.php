@@ -8,8 +8,10 @@ use App\Repositories\AlbumRepository;
 use App\Repositories\MediaTypeRepository;
 use App\Repositories\GenreRepository;
 use App\DTOs\Track\TrackRequest;
+use App\DTOs\Request;
+use App\Repositories\Repository;
 
-class TrackRepository
+class TrackRepository implements Repository
 {
     private PDO $conn;
     private string $table = 'tracks';
@@ -85,9 +87,14 @@ class TrackRepository
     }
 
     public function update(
-        int $trackId,
-        TrackRequest $request,
+        int $id,
+        Request $request
     ): bool {
+
+        if (!$request instanceof TrackRequest) {
+            throw new \InvalidArgumentException('Expected TrackRequest');
+        }
+
         $stmt = $this->conn->prepare("
             UPDATE {$this->table}
             SET name = ?, albumId = ?, mediaTypeId = ?, genreId = ?, composer = ?, milliseconds = ?, bytes = ?, unitPrice = ?
@@ -102,45 +109,49 @@ class TrackRepository
             $request->milliseconds,
             $request->bytes,
             $request->unitPrice,
-            $trackId
+            $id
         ]);
     }
 
-    public function create(TrackRequest $track): Track
+    public function create(Request $request): Track
     {
+        if (!$request instanceof TrackRequest) {
+            throw new \InvalidArgumentException('Expected TrackRequest');
+        }
+
         $stmt = $this->conn->prepare("
             INSERT INTO {$this->table}
             (name, albumId, mediaTypeId, genreId, composer, milliseconds, bytes, unitPrice)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $track->name,
-            $track->albumId,
-            $track->mediaTypeId,
-            $track->genreId,
-            $track->composer,
-            $track->milliseconds,
-            $track->bytes,
-            $track->unitPrice
+            $request->name,
+            $request->albumId,
+            $request->mediaTypeId,
+            $request->genreId,
+            $request->composer,
+            $request->milliseconds,
+            $request->bytes,
+            $request->unitPrice
         ]);
 
         $trackId = (int) $this->conn->lastInsertId();
 
-        $album = $this->albumRepo->getById((int) $track->albumId);
-        $genre = $this->genreRepo->getById((int) $track->genreId);
-        $mediaType = $this->mediaTypeRepo->getById((int) $track->mediaTypeId);
+        $album = $this->albumRepo->getById((int) $request->albumId);
+        $genre = $this->genreRepo->getById((int) $request->genreId);
+        $mediaType = $this->mediaTypeRepo->getById((int) $request->mediaTypeId);
 
 
         return new Track(
             $trackId,
-            $track->name,
+            $request->name,
             $album,
             $mediaType,
             $genre,
-            $track->composer,
-            $track->milliseconds,
-            $track->bytes,
-            $track->unitPrice
+            $request->composer,
+            $request->milliseconds,
+            $request->bytes,
+            $request->unitPrice
         );
     }
 

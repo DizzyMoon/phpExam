@@ -1,8 +1,9 @@
 <?php
 
 namespace App\DTOs\Track;
+use App\DTOs\Response;
 
-class TrackResponse {
+class TrackResponse implements Response{
     public int $trackId;
     public string $name;
     public string $albumName;
