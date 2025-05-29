@@ -39,7 +39,7 @@ class AlbumRepository {
     }
 
     public function getById(int $id): ?Album {
-        $stmt = $this->conn->prepare("SELECT * FROM {this->table} WHERE trackId = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE trackId = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 

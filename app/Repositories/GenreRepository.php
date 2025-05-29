@@ -39,7 +39,7 @@ class GenreRepository implements Repository{
             $request->name
         );
     }
-    public function update(int $id, Request $request){
+    public function update(int $id, Request $request): bool{
         if (!$request instanceof GenreRequest){
             throw new \InvalidArgumentException("Expected GenreRequest");
         }
