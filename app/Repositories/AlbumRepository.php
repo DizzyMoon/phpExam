@@ -8,15 +8,14 @@ use App\Models\Album;
 
 class AlbumRepository {
     private PDO $conn;
-    private string $table = 'albums';
+    private string $table = 'Album';
     private ArtistRepository $artistRepository;
 
     public function __construct(
-        PDO $conn,
-        ArtistRepository $artistRepository
+        PDO $db,
         ) {
-            $this->conn = $conn;
-            $this->artistRepository = $artistRepository;
+            $this->artistRepository = new ArtistRepository($db);
+            $this->conn = $db;
         }
 
     public function getAll(): array {
@@ -26,11 +25,11 @@ class AlbumRepository {
         $albums = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-            $artist = $this->artistRepository->getById((int) $row["artistId"]);
+            $artist = $this->artistRepository->getById((int) $row["ArtistId"]);
 
             $albums[] = new Album(
-                (int) $row["albumId"],
-                 $row["title"],
+                (int) $row["AlbumId"],
+                 $row["Title"],
                 $artist
             );
         }
@@ -39,7 +38,7 @@ class AlbumRepository {
     }
 
     public function getById(int $id): ?Album {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE trackId = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE AlbumId = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -47,11 +46,11 @@ class AlbumRepository {
             return null;
         }
 
-        $artist = $this->artistRepository->getById((int) $row["artistId"]);
+        $artist = $this->artistRepository->getById((int) $row["ArtistId"]);
 
         return new Album(
-            (int) $row["albumId"],
-            $row["title"],
+            (int) $row["AlbumId"],
+            $row["Title"],
             $artist
         );
     }
@@ -79,7 +78,7 @@ class AlbumRepository {
     }
 
     public function delete(int $id): bool {
-        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE albumId = ?");
+        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE AlbumId = ?");
         return $stmt->execute([$id]);
     }
 }

@@ -2,18 +2,18 @@
 
 namespace App\Repositories;
 
-use App\Repositories\Repository;
+require_once __DIR__ . "/../Models/Mediatype.php";
+
 use App\DTOs\Request;
 use App\DTOs\MediaType\MediaTypeRequest;
 use App\Models\MediaType;
 
 use PDO;
 
-class MediaTypeRepository implements Repository {
-
+class MediaTypeRepository {
     private PDO $conn;
 
-    private string $table = "mediaTypes";
+    private string $table = "MediaType";
 
     public function __construct(PDO $conn){
         $this->conn = $conn;
@@ -48,9 +48,9 @@ class MediaTypeRepository implements Repository {
         }
 
         $stmt = $this->conn->prepare("
-            UPDATE ($this->table}
+            UPDATE {$this->table}
             SET name = ?
-            WHERE mediaTypeId = ?
+            WHERE MediaTypeId = ?
         ");
 
         return $stmt->execute([
@@ -68,8 +68,8 @@ class MediaTypeRepository implements Repository {
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $mediaTypes[] = new MediaType(
-                $row["mediaTypeId"],
-                $row["name"]
+                $row["MediaTypeId"],
+                $row["Name"]
             );
         }
 
@@ -78,7 +78,7 @@ class MediaTypeRepository implements Repository {
 
     public function getById(int $id){
         $stmt = $this->conn->prepare("
-            SELECT * FROM {$this->table} WHERE mediaTypeId = ?
+            SELECT * FROM {$this->table} WHERE MediaTypeId = ?
         ");
         $stmt->execute([
             $id
@@ -91,12 +91,12 @@ class MediaTypeRepository implements Repository {
         }
 
         return new MediaType(
-            $row["mediaTypeId"],
-            $row["name"]
+            $row["MediaTypeId"],
+            $row["Name"]
         );
     }
     public function delete(int $id): bool{
-        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE mediaTypeId = ?");
+        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE MediaTypeId = ?");
         return $stmt->execute([
             $id
         ]);

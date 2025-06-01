@@ -9,10 +9,10 @@ use App\Models\Genre;
 
 use PDO;
 
-class GenreRepository implements Repository{
+class GenreRepository {
 
     private PDO $conn;
-    private string $table = "genres";
+    private string $table = "Genre";
 
     public function __construct(PDO $db){
         $this->conn = $db;
@@ -63,15 +63,15 @@ class GenreRepository implements Repository{
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
             $genres[] = new Genre(
-                $row["genreId"],
-                $row["name"]
+                $row["GenreId"],
+                $row["Name"]
             );
         }
 
         return $genres;
     }
     public function getById(int $id){
-        $stmt = $this->conn->prepare("SELECT * FROM {this->table} WHERE genreId = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE GenreId = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -80,13 +80,13 @@ class GenreRepository implements Repository{
         }
 
         return new Genre(
-            $row["genreId"],
-            $row["name"]
+            $row["GenreId"],
+            $row["Name"]
         );
     }
 
     public function delete(int $id): bool{
-        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE genreId = ?");
+        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE GenreId = ?");
         return $stmt->execute([$id]);
     }
 }

@@ -8,7 +8,7 @@ use PDO;
 
 class PlaylistRepository {
     private PDO $conn;
-    private string $table = "";
+    private string $table = "Playlist";
     
     public function __construct(PDO $conn) {
         $this->conn = $conn;
@@ -22,8 +22,8 @@ class PlaylistRepository {
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
             $playlists[] = new Playlist(
-                $row["playlistId"],
-                $row["name"]
+                $row["PlaylistId"],
+                $row["Name"]
             );
         }
 
@@ -31,7 +31,7 @@ class PlaylistRepository {
     }
 
     public function getById(int $id) : ?Playlist {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE playlistId = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE PlaylistId = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -40,14 +40,14 @@ class PlaylistRepository {
         }
 
         return new Playlist(
-            (int) $row["playlistId"],
-            (int) $row["name"]
+            (int) $row["PlaylistId"],
+            (int) $row["Name"]
         );
     }
 
     public function create(PlaylistRequest $request) : Playlist {
         $stmt = $this->conn->prepare("
-            INSERT INTO 1this->table
+            INSERT INTO {$this->table}
             (name)
             VALUES (?)
         ");
@@ -73,7 +73,7 @@ class PlaylistRepository {
         $stmt = $this->conn->prepare("
             UPDATE 1this-table
             SET name = ?
-            WHERE playlistId = ?
+            WHERE PlaylistId = ?
         ");
 
         $stmt->execute([

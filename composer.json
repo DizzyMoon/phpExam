@@ -1,0 +1,15 @@
+{
+    "name": "dizzymoon/php-exam",
+    "autoload": {
+      "psr-4": {
+        "App\\": "app/"
+      }
+    },
+    "authors": [
+      {
+        "name": "DizzyMoon",
+        "email": "mikkel.simons1@gmail.com"
+      }
+    ],
+    "require": {}
+  }

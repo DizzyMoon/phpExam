@@ -8,27 +8,23 @@ use App\Repositories\AlbumRepository;
 use App\Repositories\MediaTypeRepository;
 use App\Repositories\GenreRepository;
 use App\DTOs\Track\TrackRequest;
-use App\DTOs\Request;
 use App\Repositories\Repository;
 
-class TrackRepository implements Repository
+class TrackRepository
 {
     private PDO $conn;
-    private string $table = 'tracks';
+    private string $table = 'Track';
     private AlbumRepository $albumRepo;
     private MediaTypeRepository $mediaTypeRepo;
     private GenreRepository $genreRepo;
 
     public function __construct(
         PDO $db,
-        AlbumRepository $albumRepo,
-        GenreRepository $genreRepo,
-        MediaTypeRepository $mediaTypeRepo
     ) {
         $this->conn = $db;
-        $this->albumRepo = $albumRepo;
-        $this->mediaTypeRepo = $mediaTypeRepo;
-        $this->genreRepo = $genreRepo;
+        $this->albumRepo = new AlbumRepository($db);
+        $this->mediaTypeRepo = new MediaTypeRepository($db);
+        $this->genreRepo = new GenreRepository($db);
     }
 
     public function getAll(): array
@@ -39,20 +35,20 @@ class TrackRepository implements Repository
         $tracks = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $album = $this->albumRepo->getById((int) $row['albumId']);
-            $genre = $this->genreRepo->getById((int) $row['genreId']);
-            $mediaType = $this->mediaTypeRepo->getById((int) $row['mediaTypeId']);
+            $album = $this->albumRepo->getById((int) $row['AlbumId']);
+            $genre = $this->genreRepo->getById((int) $row['GenreId']);
+            $mediaType = $this->mediaTypeRepo->getById((int) $row['MediaTypeId']);
 
             $tracks[] = new Track(
-                (int) $row['trackId'],
-                $row['name'],
+                (int) $row['TrackId'],
+                $row['Name'],
                 $album,
                 $mediaType,
                 $genre,
-                $row['composer'],
-                (int) $row['milliseconds'],
-                (float) $row['bytes'],
-                (float) $row['unitPrice']
+                $row['Composer'],
+                (int) $row['Milliseconds'],
+                (float) $row['Bytes'],
+                (float) $row['UnitPrice']
             );
         }
 
@@ -61,7 +57,7 @@ class TrackRepository implements Repository
 
     public function getById(int $trackId): ?Track
     {
-        $stmt = $this->conn->prepare('SELECT * FROM' . $this->table . ' WHERE trackId = ?');
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE TrackId = ?");
         $stmt->execute([$trackId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -69,31 +65,27 @@ class TrackRepository implements Repository
             return null;
         }
 
-        $album = $this->albumRepo->getById((int) $row['albumId']);
-        $genre = $this->genreRepo->getById((int) $row['genreId']);
-        $mediaType = $this->mediaTypeRepo->getById((int) $row['mediaTypeId']);
+        $album = $this->albumRepo->getById((int) $row['AlbumId']);
+        $mediaType = $this->mediaTypeRepo->getById((int) $row['MediaTypeId']);
+        $genre = $this->genreRepo->getById((int) $row['GenreId']);
 
         return new Track(
-            $row['trackId'],
-            $row['name'],
+            $row['TrackId'],
+            $row['Name'],
             $album,
             $mediaType,
             $genre,
-            $row['composer'],
-            $row['milliseconds'],
-            $row['bytes'],
-            $row['unitPrice']
+            $row['Composer'],
+            $row['Milliseconds'],
+            $row['Bytes'],
+            $row['UnitPrice']
         );
     }
 
     public function update(
         int $id,
-        Request $request
+        TrackRequest $request
     ): bool {
-
-        if (!$request instanceof TrackRequest) {
-            throw new \InvalidArgumentException('Expected TrackRequest');
-        }
 
         $stmt = $this->conn->prepare("
             UPDATE {$this->table}
@@ -113,11 +105,8 @@ class TrackRepository implements Repository
         ]);
     }
 
-    public function create(Request $request): Track
+    public function create(TrackRequest $request): Track
     {
-        if (!$request instanceof TrackRequest) {
-            throw new \InvalidArgumentException('Expected TrackRequest');
-        }
 
         $stmt = $this->conn->prepare("
             INSERT INTO {$this->table}

@@ -8,29 +8,28 @@ use App\Models\PlaylistTrack;
 use App\DTOs\PlaylistTrack\PlaylistTrackRequest;
 
 class PlaylistTrackRepository {
-    private PDO $conn;
-    private string $table = "playlistTracks";
+    private PDO $db;
+    private string $table = "PlaylistTrack";
     private TrackRepository $trackRepo;
     private PlaylistRepository $playlistRepo;
-    public function __construct(PDO $conn, PlaylistRepository $playlistRepository, TrackRepository $trackRepository){
-        $this->conn = $conn;
-        $this->playlistRepo = $playlistRepository;
-        $this->trackRepo = $trackRepository;
+    public function __construct(PDO $db){
+        $this->db = $db;
+        $this->playlistRepo = new PlaylistRepository($db);
+        $this->trackRepo = new TrackRepository($db);
     }
 
     public function getAll(){
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table}");
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table}");
         $stmt->execute();
         
         $playlistTracks = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 
-            $playlist = $this->playlistRepo->getById($row["playlistId"]);
-            $track = $this->trackRepo->getById($row["trackId"]);
+            $playlist = $this->playlistRepo->getById($row["PlaylistId"]);
+            $track = $this->trackRepo->getById($row["TrackId"]);
 
             $playlistTracks[] = new PlaylistTrack(
-                $row["playlistTrackId"],
                 $playlist,
                 $track
             );
@@ -39,28 +38,27 @@ class PlaylistTrackRepository {
         return $playlistTracks;
     }
 
-    public function getById(int $id): ?PlaylistTrack{
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE playlistTrackId = ?");
-        $stmt->execute([$id]);
+    public function getById(int $playlistId, int $trackId): ?PlaylistTrack{
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE PlaylistId = ? AND TrackId = ?");
+        $stmt->execute([$playlistId, $trackId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row) {
             return null;
         }
 
-        $track = $this->trackRepo->getById($row["trackId"]);
-        $playlist = $this->playlistRepo->getById($row["playlistId"]);
+        $track = $this->trackRepo->getById($row["TrackId"]);
+        $playlist = $this->playlistRepo->getById($row["PlaylistId"]);
 
         return new PlaylistTrack(
-            $row["playlistTrackId"],
             $playlist,
             $track
         );
     }
 
     public function create(PlaylistTrackRequest $request): ?PlaylistTrack{
-        $stmt = $this->conn->prepare("
-            INSERT INTO 1this->table
+        $stmt = $this->db->prepare("
+            INSERT INTO {$this->table}
             (playlistId, trackId)
             VALUES (?, ?)
         ");
@@ -70,20 +68,19 @@ class PlaylistTrackRepository {
             $request->trackId
         ]);
 
-        $playlistTrackId = (int) $this->conn->lastInsertId();
+        $playlistTrackId = (int) $this->db->lastInsertId();
 
         $playlist = $this->playlistRepo->getById($playlistTrackId);
         $track = $this->trackRepo->getById($playlistTrackId);
 
         return new PlaylistTrack(
-            $playlistTrackId,
             $playlist,
             $track
         );
     }
 
     public function update($id, PlaylistTrackRequest $request): bool {
-        $stmt = $this->conn->prepare("
+        $stmt = $this->db->prepare("
             UPDATE {$this->table}
             SET playlistId = ?, trackId = ?
             WHERE playlistTrackId = ?
@@ -97,7 +94,7 @@ class PlaylistTrackRepository {
     }
 
     public function delete($id): bool {
-        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE playlistTrackId = ?");
+        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE PlaylistTrackId = ?");
         return $stmt->execute([$id]);
     }
 }

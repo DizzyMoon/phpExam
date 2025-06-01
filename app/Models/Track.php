@@ -13,7 +13,7 @@ class Track
     public ?Album $album;
     public ?MediaType $mediaType;
     public ?Genre $genre;
-    public string $composer;
+    public ?string $composer;
     public int $milliseconds;
     public float $bytes;
     public float $unitPrice;
@@ -25,7 +25,7 @@ class Track
         ?Album $album,
         ?MediaType $mediaType,
         ?Genre $genre,
-        string $composer,
+        ?string $composer,
         int $milliseconds,
         float $bytes,
         float $unitPrice,

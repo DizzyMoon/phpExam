@@ -6,12 +6,12 @@ use PDOException;
 
 class Database {
   private static $host = "localhost";
-  private static $db_name = "php_exam";
+  private static $db_name = "Chinook";
   private static $username = "root";
   private static $password = "";
   private static $conn = null;
 
-  public static function getConnection() {
+  public static function getConnection(): PDO {
     if (self::$conn === null) {
       try {
         self::$conn = new PDO("mysql:host=" . self::$host . ";dbname=" . self::$db_name, self::$username, self::$password);

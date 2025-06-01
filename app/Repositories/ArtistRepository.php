@@ -9,7 +9,7 @@ use App\Models\Artist;
 
 class ArtistRepository {
     private PDO $conn;
-    private string $table = 'artists';
+    private string $table = 'Artist';
     
     public function __construct(PDO $conn) {
         $this->conn = $conn;
@@ -23,8 +23,8 @@ class ArtistRepository {
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
            $artists[] = new Artist(
-            $row["artistId"],
-            $row["name"]
+            $row["ArtistId"],
+            $row["Name"]
            );
         }
 
@@ -32,7 +32,7 @@ class ArtistRepository {
     }
 
     public function getById(int $id) : ?Artist {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE artistId = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE ArtistId = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -41,8 +41,8 @@ class ArtistRepository {
         }
 
         return new Artist(
-            (int) $row["artistId"],
-            $row["name"]
+            (int) $row["ArtistId"],
+            $row["Name"]
         );
     }
 
