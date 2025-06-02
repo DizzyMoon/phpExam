@@ -24,4 +24,12 @@ class AlbumService {
     public function getAlbumById($id) {
         return $this->repository->getById($id);
     }
+
+    public function getAlbumsByArtistId(int $artistId) {
+        return $this->repository->getAlbumsByArtistId($artistId);
+    }
+
+    public function search($searchString) {
+        return $this->repository->search($searchString);
+    }
 }

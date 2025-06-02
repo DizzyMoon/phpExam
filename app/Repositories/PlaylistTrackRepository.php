@@ -39,8 +39,17 @@ class PlaylistTrackRepository {
     }
 
     public function getById(int $playlistId, int $trackId): ?PlaylistTrack{
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE PlaylistId = ? AND TrackId = ?");
-        $stmt->execute([$playlistId, $trackId]);
+
+
+        $sql = <<<SQL
+            SELECT * FROM {$this->table} WHERE PlaylistId = :playlistId AND TrackId = :trackId;
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':playlistId', $playlistId, PDO::PARAM_INT);
+        $stmt->bindParam(':trackId', $trackId, PDO::PARAM_INT);
+
+        $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row) {
@@ -57,16 +66,19 @@ class PlaylistTrackRepository {
     }
 
     public function create(PlaylistTrackRequest $request): ?PlaylistTrack{
-        $stmt = $this->db->prepare("
-            INSERT INTO {$this->table}
-            (playlistId, trackId)
-            VALUES (?, ?)
-        ");
+        
 
-        $stmt->execute([
-            $request->playlistId,
-            $request->trackId
-        ]);
+        $sql = <<<SQL
+            INSERT INTO {$this->table} (PlaylistId, TrackId)
+            VALUES (:playlistId, :trackId)
+            SQL;
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindParam(':playlistId:', $request->playlistId, \PDO::PARAM_INT);
+        $stmt->bindParam(':trackId:', $request->trackId, \PDO::PARAM_INT);
+
+        $stmt->execute();
 
         $playlistTrackId = (int) $this->db->lastInsertId();
 

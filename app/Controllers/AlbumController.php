@@ -28,4 +28,18 @@ class AlbumController {
         echo json_encode($album);
         exit;
     }
+
+    public function getAlbumsByArtistId($artistId) {
+        $albums = $this->service->getAlbumsByArtistId($artistId);
+        header('Content-Type: application/json');
+        echo json_encode($albums);
+        exit;
+    }
+
+    public function search($searchString) {
+        $album = $this->service->search($searchString);
+        header('Content-Type: application/json');
+        echo json_encode($album);
+        exit;
+    }
 }

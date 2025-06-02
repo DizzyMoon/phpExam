@@ -11,7 +11,7 @@ class Track
     public int $trackId;
     public string $name;
     public ?Album $album;
-    public ?MediaType $mediaType;
+    public MediaType $mediaType;
     public ?Genre $genre;
     public ?string $composer;
     public int $milliseconds;

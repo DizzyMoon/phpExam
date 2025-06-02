@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Repositories\Repository;
 use App\DTOs\Request;
 use App\DTOs\Genre\GenreRequest;
 use App\Models\Genre;

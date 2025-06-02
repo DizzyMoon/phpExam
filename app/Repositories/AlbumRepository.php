@@ -37,6 +37,58 @@ class AlbumRepository {
         return $albums;
     }
 
+    public function getAlbumsByArtistId(int $artistId) {
+        $sql = <<<SQL
+            SELECT {$this->table}.*
+            FROM {$this->table}
+            Join Artist ON Album.ArtistId = Artist.ArtistId
+            WHERE Artist.ArtistId = :artistId
+        SQL;
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":artistId", $artistId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        
+        $albums = [];
+        
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $artist = $this->artistRepository->getById((int) $row["ArtistId"]);
+            $albums[] = new Album(
+                $row["AlbumId"],
+                $row["Title"],
+                $artist
+            );
+        }
+
+        return $albums;
+    }
+
+    public function search($searchString) {
+        $sql = <<<SQL
+            SELECT * FROM {$this->table} WHERE Album.Title Like :searchString
+        SQL;
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":searchString", $searchString, PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        $albums = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $artist = $this->artistRepository->getById((int) $row["ArtistId"]);
+
+            $albums[] = new Album(
+                (int) $row["AlbumId"],
+                $row["Title"],
+                $artist
+            );
+        }
+
+        return $albums;
+    }
+
     public function getById(int $id): ?Album {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE AlbumId = ?");
         $stmt->execute([$id]);
