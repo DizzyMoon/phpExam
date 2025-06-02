@@ -66,7 +66,25 @@ class PlaylistTrackRepository {
     }
 
     public function create(PlaylistTrackRequest $request): ?PlaylistTrack{
+        $sql = <<<SQL
+            SELECT MAX(PlayListTrackId) AS max_id FROM {$this->table}
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        $maxId = (int) $stmt->fetchColumn();
+        $nextId = $maxId + 1;
         
+        $sql = <<<SQL
+            SELECT MAX(PlayListTrackId) AS max_id FROM {$this->table}
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        $maxId = (int) $stmt->fetchColumn();
+        $nextId = $maxId + 1;
 
         $sql = <<<SQL
             INSERT INTO {$this->table} (PlaylistId, TrackId)
@@ -75,8 +93,8 @@ class PlaylistTrackRepository {
 
         $stmt = $this->db->prepare($sql);
 
-        $stmt->bindParam(':playlistId:', $request->playlistId, \PDO::PARAM_INT);
-        $stmt->bindParam(':trackId:', $request->trackId, \PDO::PARAM_INT);
+        $stmt->bindParam(':playlistId:', $request->playlistId, PDO::PARAM_INT);
+        $stmt->bindParam(':trackId:', $request->trackId, PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -105,8 +123,17 @@ class PlaylistTrackRepository {
         ]);
     }
 
-    public function delete($id): bool {
-        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE PlaylistTrackId = ?");
-        return $stmt->execute([$id]);
+    public function delete($playlistId, $trackId): bool {
+        $sql = <<<SQL
+            DELETE FROM {$this->table} WHERE PlaylistId = :playlistId AND TrackId = :trackId
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(":playlistId", $playlistId, PDO::PARAM_INT);
+        $stmt->bindParam(":trackId", $trackId, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return true;
     }
 }

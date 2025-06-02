@@ -74,6 +74,15 @@ class ArtistRepository
 
     public function create(ArtistRequest $request): Artist
     {
+        $sql = <<<SQL
+            SELECT MAX(ArtistId) AS max_id FROM {$this->table}
+        SQL;
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+
+        $maxId = (int) $stmt->fetchColumn();
+        $nextId = $maxId + 1;
 
         $sql = <<<SQL
             INSERT INTO {$this->table}
@@ -82,12 +91,15 @@ class ArtistRepository
         SQL;
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(":artistId", $request->artistId, PDO::PARAM_INT);
+        $stmt->bindParam(":artistId", $nextId, PDO::PARAM_INT);
         $stmt->bindParam(":artistName", $request->name, PDO::PARAM_STR);
 
         try {
             $stmt->execute();
-            return new Artist($request->artistId, $request->name);
+
+            $artistId = $this->conn->lastInsertId();
+
+            return new Artist($artistId, $request->name);
         } catch (Exception $e) {
             http_response_code(400);
             echo json_encode(['error' => $e->getMessage()]);
@@ -114,15 +126,15 @@ class ArtistRepository
 
     public function update($id, ArtistRequest $request): bool
     {
-        $stmt = $this->conn->prepare("
-            UPDATE this->table
-            SET name = ?
-            WHERE artistId = ?
-        ");
+        $sql = <<<SQL
+            UPDATE {$this->table}
+            SET name = :artistName
+            WHERE ArtistId = :artistId
+        SQL;
 
-        return $stmt->execute([
-            $request->name,
-            $id
-        ]);
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":artistName", $id, PDO::PARAM_STR);
+        $stmt->bindParam(":artistId", $request->name, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }

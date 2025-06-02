@@ -6,21 +6,24 @@ use App\Models\Playlist;
 use App\DTOs\Playlist\PlaylistRequest;
 use PDO;
 
-class PlaylistRepository {
-    private PDO $conn;
+class PlaylistRepository
+{
+    private PDO $db;
     private string $table = "Playlist";
-    
-    public function __construct(PDO $conn) {
-        $this->conn = $conn;
+
+    public function __construct(PDO $db)
+    {
+        $this->db = $db;
     }
 
-    public function getAll() : array {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table}");
+    public function getAll(): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table}");
         $stmt->execute();
 
         $playlists = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $playlists[] = new Playlist(
                 $row["PlaylistId"],
                 $row["Name"]
@@ -30,8 +33,9 @@ class PlaylistRepository {
         return $playlists;
     }
 
-    public function getById(int $id) : ?Playlist {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE PlaylistId = ?");
+    public function getById(int $id): ?Playlist
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE PlaylistId = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -45,18 +49,29 @@ class PlaylistRepository {
         );
     }
 
-    public function create(PlaylistRequest $request) : Playlist {
-        $stmt = $this->conn->prepare("
+    public function create(PlaylistRequest $request): Playlist
+    {
+        $sql = <<<SQL
+            SELECT MAX(PlaylistId) AS max_id FROM {$this->table}
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        $maxId = (int) $stmt->fetchColumn();
+        $nextId = $maxId + 1;
+
+        $sql = <<<SQL
             INSERT INTO {$this->table}
-            (name)
-            VALUES (?)
-        ");
+            (PlaylistId, Name)
+            VALUES (:playlistId, :playlistName)
+        SQL;
 
-        $stmt->execute([
-            $request->name
-        ]);
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(":playlistId", $nextId, PDO::PARAM_INT);
+        $stmt->bindParam(":playlistName", $request->name, PDO::PARAM_STR);
 
-        $playlistId = (int) $this->conn->lastInsertId();
+        $playlistId = (int) $this->db->lastInsertId();
 
         return new Playlist(
             (int) $playlistId,
@@ -64,13 +79,22 @@ class PlaylistRepository {
         );
     }
 
-    public function delete(int $id) :bool {
-        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE playlistId = ?");
-        return $stmt->execute([$id]);
+    public function delete(int $id): bool
+    {
+        $sql = <<<SQL
+            DELETE FROM {$this->table} WHERE PlaylistId = :playlistId
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("playlistId", $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return true;
     }
 
-    public function update(int $id, PlaylistRequest $request) : ?Playlist {
-        $stmt = $this->conn->prepare("
+    public function update(int $id, PlaylistRequest $request): ?Playlist
+    {
+        $stmt = $this->db->prepare("
             UPDATE 1this-table
             SET name = ?
             WHERE PlaylistId = ?
@@ -80,5 +104,27 @@ class PlaylistRepository {
             $request->name,
             $id
         ]);
+    }
+
+    public function search(string $searchString)
+    {
+        $sql = <<<SQL
+            SELECT * FROM {$this->table} WHERE Playlist.Name LIKE :searchString
+        SQL;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(":searchString", $searchString, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $playlists = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $playlists[] = new Playlist(
+                (int) $row["PlaylistId"],
+                (int) $row["Name"]
+            );
+        }
+
+        return $playlists;
     }
 }

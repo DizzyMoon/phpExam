@@ -26,12 +26,12 @@ class ArtistService {
         return $this->repository->search($name);
     }
 
-    public function createArtist(int $id, string $name) {
-        if (empty($name) && empty($id)) {
+    public function createArtist(string $name) {
+        if (empty($name)) {
             throw new \Exception("Missing required fields");
         }
 
-        $request = new ArtistRequest( $id, $name);
+        $request = new ArtistRequest( $name);
 
         return $this->repository->create($request);
     }

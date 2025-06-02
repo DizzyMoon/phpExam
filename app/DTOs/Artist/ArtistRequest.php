@@ -3,11 +3,9 @@
 namespace App\DTOs\Artist;
 
 class ArtistRequest {
-    public int $artistId;
     public string $name;
 
-    public function __construct(int $id, string $name) {
-        $this->artistId = $id;
+    public function __construct(string $name) {
         $this->name = $name;
     }
 }

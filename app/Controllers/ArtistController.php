@@ -40,7 +40,7 @@ class ArtistController {
 
             try {
                 $artist = $this->service->createArtist(
-                    $data['ArtistId'] ?? null, $data['Name'] ?? null
+                    $data['name'] ?? null
                 );
 
                 header(header: 'Content-Type: application/json');

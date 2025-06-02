@@ -8,6 +8,7 @@ require_once __DIR__ . "/../Models/Album.php";
 use \App\Repositories\AlbumRepository;
 use \App\Models\Album;
 use \App\Config\Database;
+use \App\DTOs\Album\AlbumRequest;
 
 class AlbumService {
     private $repository;
@@ -31,5 +32,19 @@ class AlbumService {
 
     public function search($searchString) {
         return $this->repository->search($searchString);
+    }
+
+    public function create(string $title, int $artistId) {
+        $request = new AlbumRequest($title, $artistId);
+        return $this->repository->create($request);
+    }
+
+    public function update(int $albumId, string $title, int $artistId) {
+        $request = new AlbumRequest($title, $artistId);
+        return $this->repository->update($albumId, $request);
+    }
+
+    public function delete(int $albumId) {
+        return $this->repository->delete($albumId);
     }
 }

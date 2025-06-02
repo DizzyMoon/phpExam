@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../app/Config/Database.php';
 require_once __DIR__ . '/../app/Controllers/AlbumController.php';
-require_once __DIR__ .'/../app/Services/AlbumService.php';
+require_once __DIR__ . '/../app/Services/AlbumService.php';
 
 require_once __DIR__ . '/../app/Controllers/ArtistController.php';
 require_once __DIR__ . '/../app/Services/ArtistService.php';
@@ -44,7 +44,7 @@ $trackController = new TrackController($db);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-echo "Current URI: ". $requestUri . "\n";
+echo "Current URI: " . $requestUri . "\n";
 echo "Request method: ", $requestMethod . "\n";
 
 $normalizedUri = rtrim($requestUri, '/');
@@ -55,9 +55,9 @@ if ($requestMethod == "GET" && $requestUri == '/phpExam/') {
 }
 
 #Artists
-if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/artists/create'){
+if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/artists/create') {
     include __DIR__ . "/../views/artists/create.php";
-}  elseif ($requestMethod == 'POST' && $normalizedUri == '/phpExam/artists'){
+} elseif ($requestMethod == 'POST' && $normalizedUri == '/phpExam/artists') {
     $artistController->store();
 } elseif (preg_match('/phpExam\/artists$/', $normalizedUri) && isset($_GET['s'])) {
     $searchParam = '%' . $_GET['s'] . '%';
@@ -73,47 +73,83 @@ if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/artists/create'){
 }
 
 #Albums
-
 if (preg_match('/phpExam\/albums$/', $normalizedUri) && isset($_GET['s'])) {
     $searchParam = '%' . $_GET['s'] . '%';
     $albumController->search($searchParam);
-} elseif($requestMethod == 'GET' &&  $normalizedUri == '/phpExam/albums') {
-    $albumController->index();
-} elseif ($requestMethod == 'GET' && $normalizedUri == '/phpExam/albums/create'){
+} elseif ($requestMethod == 'GET' && $normalizedUri == '/phpExam/albums/create') {
     include __DIR__ . "/../views/albums/create.php";
-} elseif (preg_match('/phpExam\/albums\/(\d+)/', $normalizedUri, $matches)) {
-    echo 'TEST';
+} elseif ($requestMethod == 'GET' && preg_match('/phpExam\/albums\/(\d+)\/tracks/', $normalizedUri, $matches)) {
+    $trackController->getTracksByAlbumId($matches[1]);
+} elseif ($requestMethod == 'GET' && $normalizedUri == '/phpExam/albums') {
+    $albumController->index();
+} elseif ($requestMethod == 'GET' && preg_match('/phpExam\/albums\/(\d+)/', $normalizedUri, $matches)) {
     $albumController->show($matches[1]);
+} elseif ($requestMethod == 'POST' && $normalizedUri == '/phpExam/albums') {
+    $albumController->store();
+} elseif ($requestMethod == 'PUT' && preg_match('/phpExam\/albums\/(\d+)/', $normalizedUri, $matches)) {
+    $albumController->update($matches[1]);
+} elseif ($requestMethod == 'DELETE' && preg_match('/phpExam\/albums\/(\d+)/', $normalizedUri, $matches)) {
+    $albumController->delete($matches[1]);
 }
 
 #Genres
-if($requestMethod == 'GET' && $normalizedUri == '/phpExam/genres'){
+if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/genres') {
     $genreController->index();
 } elseif ($requestMethod == 'GET' && preg_match('/phpExam\/genres\/(\d+)/', $normalizedUri, $matches)) {
     $genreController->show($matches[1]);
 }
 
 #MediaTypes
-if($requestMethod == 'GET' && $normalizedUri == '/phpExam/mediatypes'){
+if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/media_types') {
     $mediaTypeController->index();
-} elseif (preg_match('/phpExam\/mediatypes\/(\d+)/', $normalizedUri, $matches)) {
+} elseif (preg_match('/phpExam\/media_types\/(\d+)/', $normalizedUri, $matches)) {
     $mediaTypeController->show($matches[1]);
 }
 
 #Playlist
-if($requestMethod == 'GET' && $normalizedUri == '/phpExam/playlists'){
+if (preg_match('/phpExam\/playlists$/', $normalizedUri) && isset($_GET['s'])) {
+    $searchParam = '%' . $_GET['s'] . '%';
+    $playlistController->search($searchParam);
+} elseif ($requestMethod == 'GET' && $normalizedUri == '/phpExam/playlists') {
     $playlistController->index();
 } elseif (preg_match('/phpExam\/playlists\/(\d+)/', $normalizedUri, $matches)) {
     $mediaTypeController->show($matches[1]);
+} elseif ($requestMethod == 'POST' && $normalizedUri == '/phpExam/playlists') {
+    $playlistController->store();
+} elseif ($requestMethod == 'DELETE' && preg_match('/phpExam\/playlists\/(\d+)/', $normalizedUri, $matches)) {
+    $playlistController->delete($matches[1]);
 }
-
 #PlaylistTrack
-if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/playlisttracks'){
+
+if ($requestMethod == 'DELETE' && preg_match('/phpExam\/playlists\/(\d+)\/tracks\/(\d+)/', $normalizedUri, $matches)) {
+    $playlistTrackController->delete($matches[1], $matches[2]);
+}
+if ($requestMethod == 'GET' && $normalizedUri == '/phpExam/playlisttracks') {
     $playlistTrackController->index();
 } elseif ($requestMethod == 'GET' && preg_match('#^/phpExam/playlisttracks/(\d+)/(\d+)$#', $normalizedUri, $matches)) {
     $playlistTrackController->show($matches[1], $matches[2]);
+} elseif ($requestMethod == 'POST' && preg_match('/phpExam\/playlists\/(\d+)\/tracks/', $normalizedUri, $matches)) {
+    $playlistTrackController->store($matches[1]);
 }
-class PlaylistResponse {
-    public int $playlistId;
-    public string $name;
+#Track
+if ($requestMethod == 'GET' && preg_match('/phpExam\/tracks$/', $normalizedUri) && isset($_GET['s'])) {
+    $searchParam = '%' . $_GET['s'] . '%';
+    $trackController->search($searchParam);
+} elseif (
+    $requestMethod == 'GET'
+    && preg_match('/phpExam\/tracks$/', $normalizedUri)
+    && isset($_GET['composer'])
+) {
+    $composerParam = $_GET['composer'];
+    $trackController->getByComposer($composerParam);
+} elseif ($requestMethod == 'GET' && $normalizedUri == '/phpExam/tracks') {
+    $trackController->index();
+} elseif ($requestMethod == 'GET' && preg_match('/phpExam\/tracks\/(\d+)/', $normalizedUri, $matches)) {
+    $trackController->show($matches[1]);
+} elseif ($requestMethod == 'POST' && $normalizedUri == '/phpExam/tracks') {
+    $trackController->store();
+} elseif ($requestMethod == 'PUT' && preg_match('/phpExam\/tracks\/(\d+)/', $normalizedUri, $matches)) {
+    $trackController->update($matches[1]);
+} elseif ($requestMethod == 'DELETE' && preg_match('/phpExam\/tracks\/(\d+)/', $normalizedUri, $matches)) {
+    $trackController->delete($matches[1]);
 }
